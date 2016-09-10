@@ -1,0 +1,27 @@
+#!/bin/bash -eu
+
+if /usr/bin/systemctl status joke-service | /bin/grep --word-regexp --no-messages --silent process; then
+    /usr/bin/systemctl stop joke-service;
+fi
+
+VERSION=$1
+RPM_PATH=/var/lib/go-agent/pipelines/joke-service/target/rpm/joke-service/RPMS/noarch/joke-service-$VERSION-1.noarch.rpm
+
+remove_old_rpm() {
+    sudo yum -y remove joke-service.noarch
+}
+
+install_new_rpm() {
+    sudo yum -y install $RPM_PATH
+}
+
+run_service(){
+    sudo /usr/bin/systemctl daemon-reload
+    sudo /usr/bin/systemctl start joke-service
+}
+
+remove_old_rpm
+install_new_rpm
+run_service
+
+echo "######################## Joke Service deploy Done ##########################"

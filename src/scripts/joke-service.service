@@ -1,0 +1,12 @@
+[Unit]
+Description=Joke Service
+After=network.target
+
+[Service]
+Type=simple
+User=joke-service
+ExecStart=/usr/bin/joke-service
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
