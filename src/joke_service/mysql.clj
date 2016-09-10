@@ -27,25 +27,11 @@
        :name name
        :search_field search-field})))
 
-(defn get-resource-md5-by-name [name]
-  (let [md5 (sql/with-connection db
-              (sql/with-query-results rows [(str "select md5 from resource where name = '" name "'" )]
-                (doall rows)))]
-    (if (nil? md5)
-      nil
-      (:md5 (first md5)))))
-
 (defn insert-resource-md5-with-name [md5 name]
   (sql/with-connection db
     (sql/insert-records :resource
       {:name name
        :md5 md5})))
-
-(defn update-resource-md5-with-name [md5 name]
-  (sql/with-connection db
-    (sql/update-values :resource
-      ["name=?" name]
-      {:md5 md5})))
 
 (defn get-fund-by-code [code]
   (sql/with-connection db
@@ -100,3 +86,17 @@
        :img (:img joke-detail)
        :intro (:span joke-detail)
        })))
+
+(defn get-resource-history-number []
+  (let [record (sql/with-connection db
+              (sql/with-query-results rows [(str "select counter from resource where name = 'history_page'")]
+                (doall rows)))]
+    (if (nil? record)
+      nil
+      (:counter (first record)))))
+
+(defn update-resource-by-name [content name]
+  (sql/with-connection db
+    (sql/update-values :resource
+      ["name=?" name]
+      {:counter content})))

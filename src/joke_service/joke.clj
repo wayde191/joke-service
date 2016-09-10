@@ -41,7 +41,6 @@
           (html-selecter/class "img_wrapper"))
         parsed-doc))
     (catch Exception e
-      (println e)
       (log/error (str "caught exception: " (.getMessage e) " with get-joke-detail")))))
 
 (defn insert-joke [joke create-date]
@@ -61,9 +60,9 @@
         (log/error (str "caught exception: " (.getMessage e) " with insert-joke"))))
     ))
 
-(defn process-latest-joke []
+(defn process-latest-joke [page-number]
   (try
-    (let [html-str (middleware/http-atom {:url (config/get-joke-url 1 (coerce/to-long (time/now)))})
+    (let [html-str (middleware/http-atom {:url (config/get-joke-url page-number (coerce/to-long (time/now)))})
           trim-str (string/trim
                      (->
                        (string/replace html-str #"callbackFunction\(" "")
@@ -77,10 +76,12 @@
       (persist-as-json trim-str (str "/tmp/jokes-" create-date ".json"))
       (count (map #(insert-joke % create-date) normal-data)))
     (catch Exception e
-      (println e)
       (log/error (str "caught exception: " (.getMessage e) " with process-latest-joke")))))
 
 (defn start []
   (log/info "Starting the joke service ... ")
-  (process-latest-joke)
-  )
+  (process-latest-joke 1)
+  (let [history-page-number (Integer/parseInt (mysql/get-resource-history-number))
+        step 100]
+    (dotimes [n step] (process-latest-joke (+ history-page-number n 1)))
+    (mysql/update-resource-by-name (+ history-page-number step) "history_page")))
