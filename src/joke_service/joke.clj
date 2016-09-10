@@ -81,7 +81,8 @@
 (defn start []
   (log/info "Starting the joke service ... ")
   (process-latest-joke 1)
-  (let [history-page-number (Integer/parseInt (mysql/get-resource-history-number))
-        step 100]
-    (dotimes [n step] (process-latest-joke (+ history-page-number n 1)))
-    (mysql/update-resource-by-name (+ history-page-number step) "history_page")))
+;  (let [history-page-number (Integer/parseInt (mysql/get-resource-history-number))
+;        step 100]
+;    (dotimes [n step] (process-latest-joke (+ history-page-number n 1)))
+;    (mysql/update-resource-by-name (+ history-page-number step) "history_page"))
+  )
