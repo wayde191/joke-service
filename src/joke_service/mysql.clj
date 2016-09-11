@@ -87,6 +87,11 @@
        :intro (:span joke-detail)
        })))
 
+(defn get-joke-detail []
+  (sql/with-connection db
+    (sql/with-query-results rows [(str "select * from joke_content")]
+      (doall rows))))
+
 (defn get-resource-history-number []
   (let [record (sql/with-connection db
               (sql/with-query-results rows [(str "select counter from resource where name = 'history_page'")]
@@ -100,3 +105,11 @@
     (sql/update-values :resource
       ["name=?" name]
       {:counter content})))
+
+(defn get-resource-refresh-switch []
+  (let [record (sql/with-connection db
+                 (sql/with-query-results rows [(str "select counter from resource where name = 'refresh_images'")]
+                   (doall rows)))]
+    (if (nil? record)
+      nil
+      (:counter (first record)))))

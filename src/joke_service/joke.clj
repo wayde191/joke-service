@@ -16,6 +16,16 @@
             [joke-service.mysql :as mysql]
             [digest :as digest]))
 
+(defn save-file-to-local [file-url]
+  (try
+    (let [file-name (last (string/split file-url #"/"))
+          path (str "/tmp/images/" file-name)]
+      (if (= "yes" (file-exists? path))
+        (log/info (str "exist! " path))
+        (save-photo file-url path)))
+    (catch Exception e
+      (log/error (str "caught exception: " (.getMessage e) " with save-file-to-local")))))
+
 (defn insert-detail-info [doc-id joke-detail]
   (let [content (:content joke-detail)
         first-ele (first content)
@@ -78,11 +88,26 @@
     (catch Exception e
       (log/error (str "caught exception: " (.getMessage e) " with process-latest-joke")))))
 
+(defn process-history-joke []
+  (let [history-page-number (Integer/parseInt (mysql/get-resource-history-number))
+        step 4]
+    (dotimes [n step] (process-latest-joke (+ history-page-number n 1)))
+    (mysql/update-resource-by-name (+ history-page-number step) "history_page")))
+
+(defn refresh-joke-images []
+  (try
+    (let [switch-on (mysql/get-resource-refresh-switch)]
+    (if (= switch-on "1")
+      (->>
+        (mysql/get-joke-detail)
+        (map #(save-file-to-local (:img %)))
+        (count))
+      (log/info "Refresh off.")))
+    (catch Exception e
+      (log/error (str "caught exception: " (.getMessage e) " with refresh-joke-images")))))
+
 (defn start []
   (log/info "Starting the joke service ... ")
   (process-latest-joke 1)
-;  (let [history-page-number (Integer/parseInt (mysql/get-resource-history-number))
-;        step 100]
-;    (dotimes [n step] (process-latest-joke (+ history-page-number n 1)))
-;    (mysql/update-resource-by-name (+ history-page-number step) "history_page"))
-  )
+  (process-history-joke)
+  (refresh-joke-images))
