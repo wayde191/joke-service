@@ -1,5 +1,5 @@
-(def version (if-let [version (System/getenv "GO_PIPELINE_COUNTER")]
-               (str version "." (System/getenv "GO_STAGE_COUNTER"))
+(def version (if-let [version (System/getenv "SNAP_PIPELINE_COUNTER")]
+               (str version "." (System/getenv "SNAP_PIPELINE_COUNTER"))
                "0.1.0-SNAPSHOT"))
 
 (defproject joke-service version
@@ -46,6 +46,7 @@
                                   [java-jdbc/dsl "0.1.1"]]}}
 
   :rpm {:name "joke-service"
+        :version version
         :summary "Joke service"
         :copyright "iHakula Inc"
         :workarea "target/rpm"
